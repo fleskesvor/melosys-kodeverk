@@ -74,7 +74,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - run: |
-          # FIXME: Dette er grisete
+          # FIXME: Dette er veldig grisete
           git config --global user.email "githubci-melosys@nav.no"
           git config --global user.name "GitHubCI"
           git remote set-url origin "https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}"
