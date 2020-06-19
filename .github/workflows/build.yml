@@ -124,7 +124,7 @@ jobs:
           path: dist
       - run: |
           # TODO Sjekk om versjon kan gjenbrukes med beta-tag
-          npm --no-git-tag-version "${FRONTEND_VERSION}"
+          npm --no-git-tag-version version "${FRONTEND_VERSION}"
           npm publish --tag beta
         working-directory: dist
         env:
