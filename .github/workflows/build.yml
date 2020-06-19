@@ -101,7 +101,7 @@ jobs:
       frontend_versjon: ${{ steps.versjoner.outputs.frontend }}
       backend_versjon: ${{ steps.versjoner.outputs.backend }}
     steps:
-      - uses: actions/checkout@v1
+#      - uses: actions/checkout@v1
       - uses: actions/download-artifact@v1
         with:
           name: melosys-kodeverk
@@ -118,9 +118,25 @@ jobs:
     runs-on: ubuntu-latest
     container: node:latest
     steps:
+      - uses: actions/download-artifact@v1
+        with:
+          name: melosys-kodeverk
+          path: dist
       - run: |
-          echo "FRONTEND ${FRONTEND_VERSION}"
+          # TODO Sjekk om versjon kan gjenbrukes med beta-tag
+          npm --no-git-tag-version "${FRONTEND_VERSION}"
+          npm publish --tag beta
+        working-directory: dist
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FRONTEND_VERSION: ${{needs.lag_snapshot_versjon.outputs.frontend_versjon}}
+
+  release_backend_snapshot:
+    needs: [bygge_backend, lag_snapshot_versjon]
+    runs-on: ubuntu-latest
+    container: navikt/melosys-kodeverk-java:078bc2fd1eececc31889cc44c0f34f2f806c3aba
+    steps:
+      - run: |
           echo "BACKEND ${BACKEND_VERSION}"
         env:
-          FRONTEND_VERSION: ${{needs.lag_snapshot_versjon.outputs.frontend_versjon}}
           BACKEND_VERSION: ${{needs.lag_snapshot_versjon.outputs.backend_versjon}}
