@@ -2,9 +2,9 @@ on:
   push:
     branches:
       - master
-    tags-ignore:
-      - '**' # Ignorer alle tagger
-  pull_request
+  pull_request:
+    branches:
+      - master
 
 jobs:
   bygge_frontend:
