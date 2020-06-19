@@ -145,6 +145,8 @@ jobs:
         working-directory: melosys-internt-kodeverk
       - name: Hente Maven-avhengigheter
         run: |
+          # FIXME: Fiks/fjern maven-gpg-plugin i melosys-kodeverk-java/pom.xml
+          sed -i.bcp '223,241d' pom.xml
           mvn dependency:resolve
           mvn dependency:resolve-plugins
           mvn versions:set -DnewVersion=$BACKEND_VERSION
