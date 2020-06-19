@@ -9,6 +9,8 @@ on:
 jobs:
   bygge_frontend:
     runs-on: ubuntu-latest
+    outputs:
+      short_sha: ${{ steps.parse_commit.outputs.short_sha }}
     steps:
       - uses: actions/checkout@v1
       - uses: actions/setup-node@v1
@@ -23,6 +25,9 @@ jobs:
       - run: yarn install
       - run: yarn test
       - run: yarn build
+      - id: parse_commit
+        run: |
+          echo "::set-output name=short_sha::$(git rev-parse --short HEAD)"
       - uses: actions/upload-artifact@v1
         with:
           name: melosys-kodeverk
@@ -99,10 +104,11 @@ jobs:
           path: dist
       - id: versjoner
         run: |
-          echo "::set-output name=frontend::$(cat dist/semver.txt)-beta.${PR_NUMBER}"
+          echo "::set-output name=frontend::$(cat dist/semver.txt)-beta.${SHORT_SHA}"
           echo "::set-output name=backend::$(cat dist/semver.txt)-SNAPSHOT"
         env:
           PR_NUMBER: ${{ github.event.number }}
+          SHORT_SHA: ${{needs.bygge_frontend.outputs.short_sha}}
 
   release_frontend_snapshot:
     needs: lag_snapshot_versjon
@@ -149,12 +155,22 @@ jobs:
           sed -i 's!https://oss.sonatype.org/content/repositories/snapshots!https://maven.pkg.github.com/fleskesvor/melosys-kodeverk!' pom.xml
           sed -i 's!https://oss.sonatype.org/service/local/staging/deploy/maven2/!https://maven.pkg.github.com/fleskesvor/melosys-kodeverk!' pom.xml
           sed -i '223,241d' pom.xml
+          # FIXME: Legg til maven-settings.xml i melosys-kodeverk-java
+          cat <<EOT >> maven-settings.xml
+          <settings>
+              <servers>
+                  <server>
+                      <id>github</id>
+                      <username>x-access-token</username>
+                      <password>${env.GITHUB_TOKEN}</password>
+                  </server>
+              </servers>
+          </settings>
+          EOT
           mvn dependency:resolve
           mvn dependency:resolve-plugins
-          mvn versions:set -DnewVersion=$BACKEND_VERSION
-          mvn -B deploy -Prelease -DskipTests=true
-          #  -DaltSnapshotDeploymentRepository=snapshots::default::https://maven.pkg.github.com/fleskesvor/melosys-kodeverk \
-          #  -DaltReleaseDeploymentRepository=releases::default::https://maven.pkg.github.com/fleskesvor/melosys-kodeverk
+          mvn versions:set -DnewVersion=${BACKEND_VERSION}
+          mvn -B deploy -Prelease -DskipTests=true --settings maven-settings.xml
         working-directory: melosys-internt-kodeverk
         env:
           BACKEND_VERSION: ${{needs.lag_snapshot_versjon.outputs.backend_versjon}}
