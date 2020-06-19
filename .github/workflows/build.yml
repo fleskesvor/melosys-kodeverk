@@ -138,6 +138,6 @@ jobs:
       - run: |
           ls -ltr
           echo "BACKEND ${BACKEND_VERSION}"
-        working-directory: melosys-internt-kodeverk/melosys-internt-kodeverk
+        working-directory: melosys-internt-kodeverk
         env:
           BACKEND_VERSION: ${{needs.lag_snapshot_versjon.outputs.backend_versjon}}
