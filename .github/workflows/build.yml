@@ -115,9 +115,9 @@ jobs:
           registry-url: 'https://npm.pkg.github.com/'
           scope: '@fleskesvor'
       - run: |
-          echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
+          echo "//npm.pkg.github.com/fleskesvor:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
           # TODO Sjekk om versjon kan gjenbrukes med beta-tag
-          npm config set registry https://npm.pkg.github.com/
+          npm config set registry https://npm.pkg.github.com/fleskesvor
           npm --no-git-tag-version version "${FRONTEND_VERSION}"
           npm publish --tag beta
         env:
@@ -133,9 +133,22 @@ jobs:
         with:
           name: melosys-kodeverk-java
           path: .
+      - uses: actions/cache@v1
+        with:
+          path: ~/.m2
+          key: v1-m2snapshot-${{ hashFiles('melosys-internt-kodeverk/pom.xml') }}
+          restore-keys: |
+            v1-m2snapshot-
       - run: |
           ls -ltr
           echo "BACKEND ${BACKEND_VERSION}"
+        working-directory: melosys-internt-kodeverk
+      - name: Hente Maven-avhengigheter
+        run: |
+          mvn dependency:resolve --settings /settings.xml
+          mvn dependency:resolve-plugins --settings /settings.xml
+          mvn versions:set -DnewVersion=$BACKEND_VERSION
+          mvn -B --settings /settings.xml deploy -Prelease -DskipTests=true
         working-directory: melosys-internt-kodeverk
         env:
           BACKEND_VERSION: ${{needs.lag_snapshot_versjon.outputs.backend_versjon}}
