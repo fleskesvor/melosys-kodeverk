@@ -93,6 +93,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   release_frontend_snapshot:
+    if: github.ref != 'refs/heads/master'
     needs: bygge_frontend
     runs-on: ubuntu-latest
     container: node:latest
@@ -106,5 +107,7 @@ jobs:
           ls -l dist
           cat dist/semver.txt
           echo "GITHUB_SHA ${GITHUB_SHA}"
-          SNAPSHOT_VERSION="$(cat dist/semver.txt)-beta.${GITHUB_SHA::8}"
+          SNAPSHOT_VERSION="$(cat dist/semver.txt)-beta.${PR_NUMBER}"
           echo "SNAPSHOT_VERSION ${SNAPSHOT_VERSION}"
+        env:
+          PR_NUMBER: ${{ github.event.number }}
