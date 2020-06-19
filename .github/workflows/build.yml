@@ -116,6 +116,8 @@ jobs:
           scope: '@fleskesvor'
       - run: |
           echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
+          cat .npmrc
+          cat ~/.npmrc
           # TODO Sjekk om versjon kan gjenbrukes med beta-tag
           npm --no-git-tag-version version "${FRONTEND_VERSION}"
           npm publish --tag beta
@@ -131,7 +133,7 @@ jobs:
       - uses: actions/download-artifact@v1
         with:
           name: melosys-kodeverk-java
-          path: melosys-internt-kodeverk
+          path: .
       - run: |
           ls -ltr
           echo "BACKEND ${BACKEND_VERSION}"
