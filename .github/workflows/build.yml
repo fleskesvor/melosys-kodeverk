@@ -68,6 +68,7 @@ jobs:
           path: melosys-kodeverk-java
 
   tagge_frontend:
+    if: github.ref == 'refs/heads/master'
     needs: bygge_backend
     runs-on: ubuntu-latest
     container: node:latest
