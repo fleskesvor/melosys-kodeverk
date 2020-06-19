@@ -103,5 +103,8 @@ jobs:
           name: melosys-kodeverk
           path: dist
       - run: |
+          ls -l dist
+          cat dist/semver.txt
+          echo "GITHUB_SHA ${GITHUB_SHA}"
           SNAPSHOT_VERSION="$(cat dist/semver.txt)-beta.${GITHUB_SHA::8}"
           echo "SNAPSHOT_VERSION ${SNAPSHOT_VERSION}"
