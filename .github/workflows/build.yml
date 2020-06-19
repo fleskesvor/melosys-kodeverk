@@ -9,9 +9,11 @@ on:
 jobs:
   bygge_frontend:
     runs-on: ubuntu-latest
-    container: node:latest
     steps:
       - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12'
       - uses: actions/cache@v1
         with:
           path: node_modules
@@ -60,9 +62,11 @@ jobs:
     if: github.ref == 'refs/heads/master'
     needs: bygge_backend
     runs-on: ubuntu-latest
-    container: node:latest
     steps:
       - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12'
       - run: |
           # FIXME: Dette er veldig, veldig grisete
           git config --global user.email "githubci-melosys@nav.no"
@@ -85,7 +89,6 @@ jobs:
     if: github.ref != 'refs/heads/master'
     needs: bygge_frontend
     runs-on: ubuntu-latest
-    container: node:latest
     outputs:
       frontend_versjon: ${{ steps.versjoner.outputs.frontend }}
       backend_versjon: ${{ steps.versjoner.outputs.backend }}
@@ -111,7 +114,7 @@ jobs:
           node-version: '12'
           registry-url: 'https://npm.pkg.github.com'
       - run: |
-          cat .npmrc
+          ls -latr
           # TODO Sjekk om versjon kan gjenbrukes med beta-tag
           npm --no-git-tag-version version "${FRONTEND_VERSION}"
           npm publish --tag beta
