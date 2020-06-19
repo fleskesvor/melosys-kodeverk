@@ -111,6 +111,7 @@ jobs:
           node-version: '12'
           registry-url: 'https://npm.pkg.github.com'
       - run: |
+          cat .npmrc
           # TODO Sjekk om versjon kan gjenbrukes med beta-tag
           npm --no-git-tag-version version "${FRONTEND_VERSION}"
           npm publish --tag beta
