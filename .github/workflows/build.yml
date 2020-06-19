@@ -29,7 +29,7 @@ jobs:
   bygge_backend:
     needs: bygge_frontend
     runs-on: ubuntu-latest
-    container: navikt/melosys-kodeverk-java:078bc2fd1eececc31889cc44c0f34f2f806c3aba
+    container: navikt/melosys-kodeverk-java:9e7b71c1691dfda48f4de4a55fd0b7d6e1b6a241
     steps:
       # GitHub Actions tillater kun filer under workspace i cache-nøkler
       - run: cp /app.jar .
@@ -111,7 +111,6 @@ jobs:
           # TODO Sjekk om versjon kan gjenbrukes med beta-tag
           npm --no-git-tag-version version "${FRONTEND_VERSION}"
           npm publish --tag beta
-        working-directory: dist
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FRONTEND_VERSION: ${{needs.lag_snapshot_versjon.outputs.frontend_versjon}}
@@ -119,7 +118,7 @@ jobs:
   release_backend_snapshot:
     needs: [bygge_backend, lag_snapshot_versjon]
     runs-on: ubuntu-latest
-    container: navikt/melosys-kodeverk-java:078bc2fd1eececc31889cc44c0f34f2f806c3aba
+    container: navikt/melosys-kodeverk-java:9e7b71c1691dfda48f4de4a55fd0b7d6e1b6a241
     steps:
       - run: |
           echo "BACKEND ${BACKEND_VERSION}"
