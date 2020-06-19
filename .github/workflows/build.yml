@@ -156,13 +156,13 @@ jobs:
           sed -i 's!https://oss.sonatype.org/service/local/staging/deploy/maven2/!https://maven.pkg.github.com/fleskesvor/melosys-kodeverk!' pom.xml
           sed -i '223,241d' pom.xml
           # FIXME: Legg til maven-settings.xml i melosys-kodeverk-java
-          cat <<EOT > maven-settings.xml
+          cat > maven-settings.xml <<EOT
           <settings>
               <servers>
                   <server>
                       <id>github</id>
                       <username>x-access-token</username>
-                      <password>${env.GITHUB_TOKEN}</password>
+                      <password>${GITHUB_TOKEN}</password>
                   </server>
               </servers>
           </settings>
