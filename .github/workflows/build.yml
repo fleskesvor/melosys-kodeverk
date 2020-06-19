@@ -1,9 +1,9 @@
 on:
   push:
-      branches:
-        - master
-      tags-ignore:
-        - '**' # Ignorer alle tagger
+    branches:
+      - master
+    tags-ignore:
+      - '**' # Ignorer alle tagger
   pull_request
 
 jobs:
