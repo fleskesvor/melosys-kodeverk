@@ -116,8 +116,6 @@ jobs:
           scope: '@fleskesvor'
       - run: |
           echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
-          cat .npmrc
-          cat ~/.npmrc
           # TODO Sjekk om versjon kan gjenbrukes med beta-tag
           npm config set registry https://npm.pkg.github.com/
           npm --no-git-tag-version version "${FRONTEND_VERSION}"
