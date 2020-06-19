@@ -112,9 +112,10 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: '12'
+          # FIXME: Oppretter ikke .npmrc
           registry-url: 'https://npm.pkg.github.com'
       - run: |
-          ls -latr
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
           # TODO Sjekk om versjon kan gjenbrukes med beta-tag
           npm --no-git-tag-version version "${FRONTEND_VERSION}"
           npm publish --tag beta
