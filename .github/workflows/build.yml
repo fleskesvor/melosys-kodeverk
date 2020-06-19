@@ -104,9 +104,11 @@ jobs:
   release_frontend_snapshot:
     needs: lag_snapshot_versjon
     runs-on: ubuntu-latest
-    container: node:latest
     steps:
       - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+          with:
+            registry-url: 'https://npm.pkg.github.com'
       - run: |
           # TODO Sjekk om versjon kan gjenbrukes med beta-tag
           npm --no-git-tag-version version "${FRONTEND_VERSION}"
