@@ -12,11 +12,6 @@ jobs:
     container: node:latest
     steps:
       - uses: actions/checkout@v1
-      - name: Check versions and env
-        run: |
-          yarn --version
-          node --version
-          env
       - uses: actions/cache@v1
         with:
           path: node_modules
@@ -26,12 +21,6 @@ jobs:
       - run: yarn install
       - run: yarn test
       - run: yarn build
-      - name: Debugging dist directory
-        run: |
-          cd dist
-          pwd
-          ls -la
-          cat ./semver.txt
       - uses: actions/upload-artifact@v1
         with:
           name: melosys-kodeverk
@@ -101,7 +90,6 @@ jobs:
       frontend_versjon: ${{ steps.versjoner.outputs.frontend }}
       backend_versjon: ${{ steps.versjoner.outputs.backend }}
     steps:
-#      - uses: actions/checkout@v1
       - uses: actions/download-artifact@v1
         with:
           name: melosys-kodeverk
@@ -118,10 +106,7 @@ jobs:
     runs-on: ubuntu-latest
     container: node:latest
     steps:
-      - uses: actions/download-artifact@v1
-        with:
-          name: melosys-kodeverk
-          path: dist
+      - uses: actions/checkout@v1
       - run: |
           # TODO Sjekk om versjon kan gjenbrukes med beta-tag
           npm --no-git-tag-version version "${FRONTEND_VERSION}"
