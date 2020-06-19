@@ -146,8 +146,8 @@ jobs:
       - name: Hente Maven-avhengigheter
         run: |
           # FIXME: Fiks/fjern maven-gpg-plugin i melosys-kodeverk-java/pom.xml
-          sed -i 's!https://oss.sonatype.org/content/repositories/snapshots!https://maven.pkg.github.com/fleskesvor/melosys-kodeverk!' test.xml
-          sed -i 's!https://oss.sonatype.org/service/local/staging/deploy/maven2/!https://maven.pkg.github.com/fleskesvor/melosys-kodeverk!' test.xml
+          sed -i 's!https://oss.sonatype.org/content/repositories/snapshots!https://maven.pkg.github.com/fleskesvor/melosys-kodeverk!' pom.xml
+          sed -i 's!https://oss.sonatype.org/service/local/staging/deploy/maven2/!https://maven.pkg.github.com/fleskesvor/melosys-kodeverk!' pom.xml
           sed -i '223,241d' pom.xml
           mvn dependency:resolve
           mvn dependency:resolve-plugins
