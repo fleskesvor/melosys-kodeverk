@@ -115,6 +115,8 @@ jobs:
           registry-url: 'https://npm.pkg.github.com/'
           scope: '@fleskesvor'
       - run: |
+          ls -l .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
           # TODO Sjekk om versjon kan gjenbrukes med beta-tag
           npm --no-git-tag-version version "${FRONTEND_VERSION}"
           npm publish --tag beta
@@ -127,7 +129,12 @@ jobs:
     runs-on: ubuntu-latest
     container: navikt/melosys-kodeverk-java:9e7b71c1691dfda48f4de4a55fd0b7d6e1b6a241
     steps:
+      - uses: actions/download-artifact@v1
+        with:
+          name: melosys-kodeverk-java
+          path: .
       - run: |
+          ls -ltr
           echo "BACKEND ${BACKEND_VERSION}"
         env:
           BACKEND_VERSION: ${{needs.lag_snapshot_versjon.outputs.backend_versjon}}
