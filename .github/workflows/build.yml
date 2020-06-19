@@ -92,22 +92,35 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  release_frontend_snapshot:
+  lag_snapshot_versjon:
     if: github.ref != 'refs/heads/master'
     needs: bygge_frontend
     runs-on: ubuntu-latest
     container: node:latest
+    outputs:
+      frontend_versjon: ${{ steps.versjoner.outputs.frontend }}
+      backend_versjon: ${{ steps.versjoner.outputs.backend }}
     steps:
       - uses: actions/checkout@v1
       - uses: actions/download-artifact@v1
         with:
           name: melosys-kodeverk
           path: dist
-      - run: |
-          ls -l dist
-          cat dist/semver.txt
-          echo "GITHUB_SHA ${GITHUB_SHA}"
-          SNAPSHOT_VERSION="$(cat dist/semver.txt)-beta.${PR_NUMBER}"
-          echo "SNAPSHOT_VERSION ${SNAPSHOT_VERSION}"
+      - id: versjoner
+        run: |
+          echo "::set-output name=frontend::$(cat dist/semver.txt)-beta.${PR_NUMBER}"
+          echo "::set-output name=backend::$(cat dist/semver.txt)-SNAPSHOT"
         env:
           PR_NUMBER: ${{ github.event.number }}
+
+  release_frontend_snapshot:
+    needs: lag_snapshot_versjon
+    runs-on: ubuntu-latest
+    container: node:latest
+    steps:
+      - run: |
+          echo "FRONTEND ${FRONTEND_VERSION}"
+          echo "BACKEND ${BACKEND_VERSION}"
+        env:
+          FRONTEND_VERSION: ${{needs.lag_snapshot_versjon.outputs.frontend_versjon}}
+          BACKEND_VERSION: ${{needs.lag_snapshot_versjon.outputs.backend_versjon}}
