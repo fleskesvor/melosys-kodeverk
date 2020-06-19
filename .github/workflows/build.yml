@@ -1,0 +1,91 @@
+on:
+  - push:
+      branches:
+        - master
+      tags-ignore:
+        - '**' # Ignorer alle tagger
+  - pull_request
+
+jobs:
+  bygge_frontend:
+    runs-on: ubuntu-latest
+    container: node:latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Check versions and env
+        run: |
+          yarn --version
+          node --version
+          env
+      - uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: v1-yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            v1-yarn-
+      - run: yarn install
+      - run: yarn test
+      - run: yarn build
+      - name: Debugging dist directory
+        run: |
+          cd dist
+          pwd
+          ls -la
+          cat ./semver.txt
+      - uses: actions/upload-artifact@v1
+        with:
+          name: melosys-kodeverk
+          path: dist
+
+  bygge_backend:
+    needs: bygge_frontend
+    runs-on: ubuntu-latest
+    container: navikt/melosys-kodeverk-java:078bc2fd1eececc31889cc44c0f34f2f806c3aba
+    steps:
+      # GitHub Actions tillater kun filer under workspace i cache-nøkler
+      - run: cp /app.jar .
+      - uses: actions/cache@v1
+        with:
+          path: ~/.m2
+          key: v1-m2build-${{ hashFiles('app.jar') }}
+          restore-keys: |
+            v1-m2build-
+      - uses: actions/download-artifact@v1
+        with:
+          name: melosys-kodeverk
+          path: melosys-kodeverk-java/melosys-kodeverk/dist
+      - name: Generere kildekode for Java-kodeverk
+        working-directory: melosys-kodeverk-java
+        run: |
+          set -e
+          java -jar ../app.jar melosys-kodeverk/dist/kodemap.yml
+      - name: Bygge Java-kodeverk
+        working-directory: melosys-kodeverk-java/melosys-internt-kodeverk
+        run: mvn clean install -B -V
+      - uses: actions/upload-artifact@v1
+        with:
+          name: melosys-kodeverk-java
+          path: melosys-kodeverk-java
+
+  tagge_frontend:
+    needs: bygge_backend
+    runs-on: ubuntu-latest
+    container: node:latest
+    steps:
+      - uses: actions/checkout@v1
+      - run: |
+          git config --global user.email "githubci-melosys@nav.no"
+          git config --global user.name "GitHubCI"
+          git remote set-url origin "https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}"
+
+          BRANCH=${GITHUB_REF#refs/heads/}
+          git checkout -b ${BRANCH}
+          git branch --set-upstream-to=origin/${BRANCH}
+
+          echo "Tagger ny patch-versjon"
+
+          GIT_COMMIT_DESC=$(git log --format=oneline -n 1 ${GITHUB_SHA})
+          npm version patch -m "%s $GIT_COMMIT_DESC [skip ci]"
+          git push && git push --tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
