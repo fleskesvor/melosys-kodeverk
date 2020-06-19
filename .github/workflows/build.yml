@@ -91,3 +91,17 @@ jobs:
           git push && git push --tags
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release_frontend_snapshot:
+    needs: bygge_frontend
+    runs-on: ubuntu-latest
+    container: node:latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/download-artifact@v1
+        with:
+          name: melosys-kodeverk
+          path: dist
+      - run: |
+          SNAPSHOT_VERSION="$(cat dist/semver.txt)-beta.${GITHUB_SHA::8}"
+          echo "SNAPSHOT_VERSION ${SNAPSHOT_VERSION}"
