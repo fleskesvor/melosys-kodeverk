@@ -124,6 +124,7 @@ jobs:
           node-version: '12'
           registry-url: 'https://npm.pkg.github.com/'
           scope: '@fleskesvor'
+      - name: Publisere til GitHub package registry
       - run: |
           # FIXME: Rydd opp i dette
           #echo "//npm.pkg.github.com/@fleskesvor:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
@@ -155,7 +156,7 @@ jobs:
           key: v1-m2snapshot-${{ hashFiles('melosys-internt-kodeverk/pom.xml') }}
           restore-keys: |
             v1-m2snapshot-
-      - name: Hente Maven-avhengigheter
+      - name: Publisere til GitHub package registry
         run: |
           # FIXME: Fiks i melosys-kodeverk-java/melosys-kodeverk-generator/src/main/resources/templates/pom.xml
           sed -i 's!https://oss.sonatype.org/service/local/staging/deploy/maven2/!https://maven.pkg.github.com/fleskesvor/melosys-kodeverk!' pom.xml
