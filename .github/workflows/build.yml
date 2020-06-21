@@ -72,7 +72,7 @@ jobs:
         with:
           node-version: '12'
       - run: |
-          # FIXME: Dette er veldig, veldig grisete
+          # FIXME: Bytt ut med en action for å tagge og committe
           git config --global user.email "githubci-melosys@nav.no"
           git config --global user.name "GitHubCI"
           git remote set-url origin "https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}"
@@ -126,7 +126,7 @@ jobs:
           scope: '@fleskesvor'
       - run: |
           # FIXME: Rydd opp i dette
-          echo "//npm.pkg.github.com/@fleskesvor:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
+          #echo "//npm.pkg.github.com/@fleskesvor:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
           npm config set registry https://npm.pkg.github.com/@fleskesvor
           npm --no-git-tag-version version "${FRONTEND_VERSION}" --allow-same-version
 
