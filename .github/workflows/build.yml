@@ -105,7 +105,7 @@ jobs:
       - id: versjoner
         run: |
           echo "::set-output name=frontend::$(cat dist/semver.txt)-beta.${SHORT_SHA}"
-          echo "::set-output name=backend::$(cat dist/semver.txt)-SNAPSHOT"
+          echo "::set-output name=backend::$(cat dist/semver.txt)-${SHORT_SHA}-SNAPSHOT"
         env:
           PR_NUMBER: ${{ github.event.number }}
           SHORT_SHA: ${{needs.bygge_frontend.outputs.short_sha}}
@@ -151,10 +151,8 @@ jobs:
         working-directory: melosys-internt-kodeverk
       - name: Hente Maven-avhengigheter
         run: |
-          # FIXME: Fiks/fjern maven-gpg-plugin i melosys-kodeverk-java/pom.xml
-          #sed -i 's!https://oss.sonatype.org/content/repositories/snapshots!https://maven.pkg.github.com/fleskesvor/melosys-kodeverk!' pom.xml
+          # FIXME: Fiks i melosys-kodeverk-java/melosys-kodeverk-generator/src/main/resources/templates/pom.xml
           sed -i 's!https://oss.sonatype.org/service/local/staging/deploy/maven2/!https://maven.pkg.github.com/fleskesvor/melosys-kodeverk!' pom.xml
-          sed -i 's!https://oss.sonatype.org/!https://maven.pkg.github.com/fleskesvor/melosys-kodeverk!' pom.xml
           sed -i 's!<id>ossrh</id>!<id>github</id>!' pom.xml
           sed -i '223,241d' pom.xml # maven-gpg-plugin
           sed -i '129,147d' pom.xml # nexus-staging-maven-plugi
