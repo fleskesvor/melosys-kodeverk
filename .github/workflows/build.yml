@@ -127,14 +127,13 @@ jobs:
           scope: '@fleskesvor'
       - name: Publisere til GitHub package registry
         run: |
-          # FIXME: Rydd opp i dette
-          #echo "//npm.pkg.github.com/@fleskesvor:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
-          npm config set registry https://npm.pkg.github.com/@fleskesvor
+          # FIXME: Holder det ikke å sette scope i actions/setup-node da?
+          #npm config set registry https://npm.pkg.github.com/@fleskesvor
 
           if [ ${IS_MASTER} == true ]; then
             npm publish --access public
           else
-            npm --no-git-tag-version version $MELOSYS_KODEVERK_VERSION --allow-same-version
+            npm --no-git-tag-version version ${FRONTEND_VERSION} --allow-same-version
             npm publish --tag beta
           fi
         env:
@@ -184,13 +183,7 @@ jobs:
           mvn dependency:resolve --settings maven-settings.xml
           mvn dependency:resolve-plugins --settings maven-settings.xml
           mvn versions:set -DnewVersion=${BACKEND_VERSION} --settings maven-settings.xml
-
-          if [ ${IS_MASTER} == true ]; then
-            mvn -B deploy -Prelease -DskipTests=true --settings maven-settings.xml
-          else
-            # https://github.community/t/error-on-github-packages-for-snapshot-maven-artifacts-with-a-classifier/116732/3
-            mvn -B deploy -Prelease -DskipTests=true -Dmaven.javadoc.skip=true -Dmaven.source.skip=true --settings maven-settings.xml
-          fi
+          mvn -B deploy -Prelease -DskipTests=true --settings maven-settings.xml
         working-directory: melosys-internt-kodeverk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
