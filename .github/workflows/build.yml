@@ -164,14 +164,14 @@ jobs:
                   <server>
                       <id>github</id>
                       <username>x-access-token</username>
-                      <password>GITHUB_TOKEN</password>
+                      <password>${env.GITHUB_TOKEN}</password>
                   </server>
               </servers>
           </settings>
           EOT
 
-          # FIXME: Virker ikke som token blir resolva
-          sed -i.bcp 's!GITHUB_TOKEN!'${GITHUB_TOKEN}'!' maven-settings.xml
+          # FIXME: Virker ikke som token blir resolva... Hadde satt variabelen GITHUB_TOKENN (med to N-er)
+          #sed -i.bcp 's!GITHUB_TOKEN!'${GITHUB_TOKEN}'!' maven-settings.xml
 
           cat maven-settings.xml
 
@@ -181,5 +181,5 @@ jobs:
           mvn -B deploy -Prelease -DskipTests=true --settings maven-settings.xml
         working-directory: melosys-internt-kodeverk
         env:
-          GITHUB_TOKENN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BACKEND_VERSION: ${{needs.lag_snapshot_versjon.outputs.backend_versjon}}
