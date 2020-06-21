@@ -26,8 +26,7 @@ jobs:
       - run: yarn test
       - run: yarn build
       - id: parse_commit
-        run: |
-          echo "::set-output name=short_sha::$(git rev-parse --short HEAD)"
+        run: echo "::set-output name=short_sha::$(git rev-parse --short HEAD)"
       - uses: actions/upload-artifact@v1
         with:
           name: melosys-kodeverk
@@ -90,8 +89,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  lag_snapshot_versjon:
-    if: github.ref != 'refs/heads/master'
+lag_versjon:
     needs: bygge_frontend
     runs-on: ubuntu-latest
     outputs:
@@ -104,14 +102,20 @@ jobs:
           path: dist
       - id: versjoner
         run: |
-          echo "::set-output name=frontend::$(cat dist/semver.txt)-beta.${SHORT_SHA}"
-          echo "::set-output name=backend::$(cat dist/semver.txt)-${SHORT_SHA}-SNAPSHOT"
+          if [ ${IS_MASTER} == true ]; then
+            echo "::set-output name=frontend::$(cat dist/semver.txt)"
+            echo "::set-output name=backend::$(cat dist/semver.txt)"
+          else
+            echo "::set-output name=frontend::$(cat dist/semver.txt)-beta.${SHORT_SHA}"
+            echo "::set-output name=backend::$(cat dist/semver.txt)-${SHORT_SHA}-SNAPSHOT"
+          fi
         env:
+          IS_MASTER: ${{ github.ref == 'refs/heads/master' }}
           PR_NUMBER: ${{ github.event.number }}
           SHORT_SHA: ${{needs.bygge_frontend.outputs.short_sha}}
 
-  release_frontend_snapshot:
-    needs: lag_snapshot_versjon
+  release_frontend:
+    needs: lag_versjon
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -121,17 +125,23 @@ jobs:
           registry-url: 'https://npm.pkg.github.com/'
           scope: '@fleskesvor'
       - run: |
+          # FIXME: Rydd opp i dette
           echo "//npm.pkg.github.com/@fleskesvor:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
-          # TODO Sjekk om versjon kan gjenbrukes med beta-tag
           npm config set registry https://npm.pkg.github.com/@fleskesvor
-          npm --no-git-tag-version version "${FRONTEND_VERSION}"
-          npm publish --tag beta
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FRONTEND_VERSION: ${{needs.lag_snapshot_versjon.outputs.frontend_versjon}}
+          npm --no-git-tag-version version "${FRONTEND_VERSION}" --allow-same-version
 
-  release_backend_snapshot:
-    needs: [bygge_backend, lag_snapshot_versjon]
+          if [ ${IS_MASTER} == true ]; then
+            npm publish --access public
+          else
+            npm publish --tag beta
+          fi
+        env:
+          IS_MASTER: ${{ github.ref == 'refs/heads/master' }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FRONTEND_VERSION: ${{needs.lag_versjon.outputs.frontend_versjon}}
+
+  release_backend:
+    needs: [bygge_backend, lag_versjon]
     runs-on: ubuntu-latest
     container: navikt/melosys-kodeverk-java:9e7b71c1691dfda48f4de4a55fd0b7d6e1b6a241
     steps:
@@ -145,10 +155,6 @@ jobs:
           key: v1-m2snapshot-${{ hashFiles('melosys-internt-kodeverk/pom.xml') }}
           restore-keys: |
             v1-m2snapshot-
-      - run: |
-          ls -ltr
-          echo "BACKEND ${BACKEND_VERSION}"
-        working-directory: melosys-internt-kodeverk
       - name: Hente Maven-avhengigheter
         run: |
           # FIXME: Fiks i melosys-kodeverk-java/melosys-kodeverk-generator/src/main/resources/templates/pom.xml
@@ -180,4 +186,4 @@ jobs:
         working-directory: melosys-internt-kodeverk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BACKEND_VERSION: ${{needs.lag_snapshot_versjon.outputs.backend_versjon}}
+          BACKEND_VERSION: ${{needs.lag_versjon.outputs.backend_versjon}}
