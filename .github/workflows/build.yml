@@ -106,7 +106,8 @@ jobs:
             echo "::set-output name=frontend::$(cat dist/semver.txt)"
             echo "::set-output name=backend::$(cat dist/semver.txt)"
           else
-            echo "::set-output name=frontend::$(cat dist/semver.txt)-beta.${PR_NUMBER}"
+            # GPR tillater ikke samme versjon av ei npm-pakke, selv med --allow-same-versionn
+            echo "::set-output name=frontend::$(cat dist/semver.txt)-beta.${SHORT_SHA}"
             echo "::set-output name=backend::$(cat dist/semver.txt)-${PR_NUMBER}-SNAPSHOT"
           fi
         env:
@@ -129,11 +130,11 @@ jobs:
           # FIXME: Rydd opp i dette
           #echo "//npm.pkg.github.com/@fleskesvor:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
           npm config set registry https://npm.pkg.github.com/@fleskesvor
-          npm --no-git-tag-version version "${FRONTEND_VERSION}" --allow-same-version
 
           if [ ${IS_MASTER} == true ]; then
             npm publish --access public
           else
+            npm --no-git-tag-version version $MELOSYS_KODEVERK_VERSION --allow-same-version
             npm publish --tag beta
           fi
         env:
