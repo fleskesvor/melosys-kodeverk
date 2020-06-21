@@ -156,8 +156,9 @@ jobs:
           sed -i 's!https://oss.sonatype.org/service/local/staging/deploy/maven2/!https://maven.pkg.github.com/fleskesvor/melosys-kodeverk!' pom.xml
           sed -i 's!https://oss.sonatype.org/!https://maven.pkg.github.com/fleskesvor/melosys-kodeverk!' pom.xml
           sed -i 's!<id>ossrh</id>!<id>github</id>!' pom.xml
-          sed -i '223,241d' pom.xml
-          sed -i '38,41d' pom.xml
+          sed -i '223,241d' pom.xml # maven-gpg-plugin
+          sed -i '129,147d' pom.xml # nexus-staging-maven-plugi
+          sed -i '38,41d' pom.xml # snapshotRepository
 
           # FIXME: Legg til maven-settings.xml i melosys-kodeverk-java
           cat > maven-settings.xml <<EOT
