@@ -184,7 +184,13 @@ jobs:
           mvn dependency:resolve --settings maven-settings.xml
           mvn dependency:resolve-plugins --settings maven-settings.xml
           mvn versions:set -DnewVersion=${BACKEND_VERSION} --settings maven-settings.xml
-          mvn -B deploy -Prelease -DskipTests=true --settings maven-settings.xml
+
+          if [ ${IS_MASTER} == true ]; then
+            mvn -B deploy -Prelease -DskipTests=true --settings maven-settings.xml
+          else
+            # https://github.community/t/error-on-github-packages-for-snapshot-maven-artifacts-with-a-classifier/116732/3
+            mvn -B deploy -Prelease -DskipTests=true -Dmaven.javadoc.skip=true -Dmaven.source.skip=true --settings maven-settings.xml
+          fi
         working-directory: melosys-internt-kodeverk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
