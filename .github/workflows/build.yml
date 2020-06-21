@@ -125,7 +125,7 @@ jobs:
           registry-url: 'https://npm.pkg.github.com/'
           scope: '@fleskesvor'
       - name: Publisere til GitHub package registry
-      - run: |
+        run: |
           # FIXME: Rydd opp i dette
           #echo "//npm.pkg.github.com/@fleskesvor:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
           npm config set registry https://npm.pkg.github.com/@fleskesvor
