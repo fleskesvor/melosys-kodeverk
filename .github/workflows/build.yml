@@ -154,22 +154,29 @@ jobs:
           # FIXME: Fiks/fjern maven-gpg-plugin i melosys-kodeverk-java/pom.xml
           sed -i 's!https://oss.sonatype.org/content/repositories/snapshots!https://maven.pkg.github.com/fleskesvor/melosys-kodeverk!' pom.xml
           sed -i 's!https://oss.sonatype.org/service/local/staging/deploy/maven2/!https://maven.pkg.github.com/fleskesvor/melosys-kodeverk!' pom.xml
+          sed -i 's!<id>ossrh</id>!<id>github</id>!' pom.xml
           sed -i '223,241d' pom.xml
+
+          cat pom.xml
+
           # FIXME: Legg til maven-settings.xml i melosys-kodeverk-java
           cat > maven-settings.xml <<EOT
           <settings>
               <servers>
                   <server>
-                      <id>ossrh</id>
+                      <id>github</id>
                       <username>x-access-token</username>
                       <password>${GITHUB_TOKEN}</password>
                   </server>
               </servers>
           </settings>
           EOT
-          mvn dependency:resolve
-          mvn dependency:resolve-plugins
-          mvn versions:set -DnewVersion=${BACKEND_VERSION}
+
+          cat maven-settings.xml
+
+          mvn dependency:resolve --settings maven-settings.xml
+          mvn dependency:resolve-plugins --settings maven-settings.xml
+          mvn versions:set -DnewVersion=${BACKEND_VERSION} --settings maven-settings.xml
           mvn -B deploy -Prelease -DskipTests=true --settings maven-settings.xml
         working-directory: melosys-internt-kodeverk
         env:
