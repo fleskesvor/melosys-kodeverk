@@ -9,14 +9,13 @@ on:
 jobs:
   bygge_frontend:
     runs-on: ubuntu-latest
-    container: node:latest
+    outputs:
+      short_sha: ${{ steps.parse_commit.outputs.short_sha }}
     steps:
       - uses: actions/checkout@v1
-      - name: Check versions and env
-        run: |
-          yarn --version
-          node --version
-          env
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12'
       - uses: actions/cache@v1
         with:
           path: node_modules
@@ -26,66 +25,37 @@ jobs:
       - run: yarn install
       - run: yarn test
       - run: yarn build
-      - name: Debugging dist directory
+      - id: parse_commit
         run: |
-          cd dist
-          pwd
-          ls -la
-          cat ./semver.txt
+          echo "::set-output name=short_sha::$(git rev-parse --short HEAD)"
       - uses: actions/upload-artifact@v1
         with:
           name: melosys-kodeverk
           path: dist
 
-  bygge_backend:
+  lag_versjon:
+    if: github.ref != 'refs/heads/master'
     needs: bygge_frontend
     runs-on: ubuntu-latest
-    container: navikt/melosys-kodeverk-java:078bc2fd1eececc31889cc44c0f34f2f806c3aba
+    outputs:
+      frontend_versjon: ${{ steps.versjoner.outputs.frontend }}
+      backend_versjon: ${{ steps.versjoner.outputs.backend }}
     steps:
-      # GitHub Actions tillater kun filer under workspace i cache-nøkler
-      - run: cp /app.jar .
-      - uses: actions/cache@v1
-        with:
-          path: ~/.m2
-          key: v1-m2build-${{ hashFiles('app.jar') }}
-          restore-keys: |
-            v1-m2build-
       - uses: actions/download-artifact@v1
         with:
           name: melosys-kodeverk
-          path: melosys-kodeverk-java/melosys-kodeverk/dist
-      - name: Generere kildekode for Java-kodeverk
-        working-directory: melosys-kodeverk-java
+          path: dist
+      - id: versjoner
         run: |
-          set -e
-          java -jar ../app.jar melosys-kodeverk/dist/kodemap.yml
-      - name: Bygge Java-kodeverk
-        working-directory: melosys-kodeverk-java/melosys-internt-kodeverk
-        run: mvn clean install -B -V
-      - uses: actions/upload-artifact@v1
-        with:
-          name: melosys-kodeverk-java
-          path: melosys-kodeverk-java
-
-  tagge_frontend:
-    needs: bygge_backend
-    runs-on: ubuntu-latest
-    container: node:latest
-    steps:
-      - uses: actions/checkout@v1
-      - run: |
-          git config --global user.email "githubci-melosys@nav.no"
-          git config --global user.name "GitHubCI"
-          git remote set-url origin "https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}"
-
-          BRANCH=${GITHUB_REF#refs/heads/}
-          git checkout -b ${BRANCH}
-          git branch --set-upstream-to=origin/${BRANCH}
-
-          echo "Tagger ny patch-versjon"
-
-          GIT_COMMIT_DESC=$(git log --format=oneline -n 1 ${GITHUB_SHA})
-          npm version patch -m "%s $GIT_COMMIT_DESC [skip ci]"
-          git push && git push --tags
+          echo "PR_NUMBER ${PR_NUMBER}"
+          if [ ${IS_MASTER} == true ]; then
+            echo "IS_MASTER"
+          else
+            echo "NOT IS_MASTER"
+          fi
+          echo "::set-output name=frontend::$(cat dist/semver.txt)-beta.${SHORT_SHA}"
+          echo "::set-output name=backend::$(cat dist/semver.txt)-${SHORT_SHA}-SNAPSHOT"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IS_MASTER: ${{ github.ref == 'refs/heads/master' }}
+          PR_NUMBER: ${{ github.event.number }}
+          SHORT_SHA: ${{needs.bygge_frontend.outputs.short_sha}}
