@@ -108,7 +108,8 @@ jobs:
           else
             # GPR tillater ikke samme versjon av ei npm-pakke, selv med --allow-same-versionn
             echo "::set-output name=frontend::$(cat dist/semver.txt)-beta.${SHORT_SHA}"
-            echo "::set-output name=backend::$(cat dist/semver.txt)-${PR_NUMBER}-SNAPSHOT"
+            # GPR git '400 Bad Request' ved bruk av samme versjon
+            echo "::set-output name=backend::$(cat dist/semver.txt)-${SHORT_SHA}-SNAPSHOT"
           fi
         env:
           IS_MASTER: ${{ github.ref == 'refs/heads/master' }}
@@ -127,8 +128,8 @@ jobs:
           scope: '@fleskesvor'
       - name: Publisere til GitHub package registry
         run: |
-          # FIXME: Holder det ikke å sette scope i actions/setup-node da?
-          #npm config set registry https://npm.pkg.github.com/@fleskesvor
+          # FIXME: Hvorfor setter ikke actions/setup-node@v1 riktig registry?
+          npm config set registry https://npm.pkg.github.com/@fleskesvor
 
           if [ ${IS_MASTER} == true ]; then
             npm publish --access public
