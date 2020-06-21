@@ -106,8 +106,8 @@ jobs:
             echo "::set-output name=frontend::$(cat dist/semver.txt)"
             echo "::set-output name=backend::$(cat dist/semver.txt)"
           else
-            echo "::set-output name=frontend::$(cat dist/semver.txt)-beta.${SHORT_SHA}"
-            echo "::set-output name=backend::$(cat dist/semver.txt)-${SHORT_SHA}-SNAPSHOT"
+            echo "::set-output name=frontend::$(cat dist/semver.txt)-beta.${PR_NUMBER}"
+            echo "::set-output name=backend::$(cat dist/semver.txt)-${PR_NUMBER}-SNAPSHOT"
           fi
         env:
           IS_MASTER: ${{ github.ref == 'refs/heads/master' }}
