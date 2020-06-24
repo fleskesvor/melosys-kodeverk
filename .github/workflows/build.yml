@@ -62,10 +62,13 @@ jobs:
           name: melosys-kodeverk-java
           path: melosys-kodeverk-java
 
-  tagge_frontend:
+  lag_versjon:
     if: github.ref == 'refs/heads/master'
     needs: bygge_backend
     runs-on: ubuntu-latest
+    outputs:
+      frontend_versjon: ${{ steps.versjoner.outputs.frontend }}
+      backend_versjon: ${{ steps.versjoner.outputs.backend }}
     steps:
       - uses: actions/checkout@v1
       - uses: actions/setup-node@v1
@@ -76,31 +79,21 @@ jobs:
           git config --global user.name "Actions"
           COMMIT_MESSAGE=`git log -1 --pretty=%B`
           npm version patch -m "%s, $COMMIT_MESSAGE, [skip ci]"
+        if: github.ref == 'refs/heads/master'
       - uses: ad-m/github-push-action@v0.5.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-
-  lag_versjon:
-    needs: bygge_frontend
-    runs-on: ubuntu-latest
-    outputs:
-      frontend_versjon: ${{ steps.versjoner.outputs.frontend }}
-      backend_versjon: ${{ steps.versjoner.outputs.backend }}
-    steps:
-      - uses: actions/download-artifact@v1
-        with:
-          name: melosys-kodeverk
-          path: dist
+        if: github.ref == 'refs/heads/master'
       - id: versjoner
         run: |
+          SEMVER=$(jq -r .version package.json)
           if [ ${IS_MASTER} == true ]; then
-            echo "::set-output name=frontend::$(cat dist/semver.txt)"
-            echo "::set-output name=backend::$(cat dist/semver.txt)"
+            echo "::set-output name=frontend::${SEMVER}"
+            echo "::set-output name=backend::${SEMVER}"
           else
-            # GPR tillater ikke samme versjon av ei npm-pakke, selv med --allow-same-versionn
-            echo "::set-output name=frontend::$(cat dist/semver.txt)-beta.${SHORT_SHA}"
-            # GPR git '400 Bad Request' ved bruk av samme versjon
-            echo "::set-output name=backend::$(cat dist/semver.txt)-${SHORT_SHA}-SNAPSHOT"
+            # GPR støtter ikke mutable artifacts (snapshot/beta)
+            echo "::set-output name=frontend::${SEMVER}-beta.${SHORT_SHA}"
+            echo "::set-output name=backend::${SEMVER}-${SHORT_SHA}-SNAPSHOT"
           fi
         env:
           IS_MASTER: ${{ github.ref == 'refs/heads/master' }}
@@ -134,7 +127,7 @@ jobs:
           FRONTEND_VERSION: ${{needs.lag_versjon.outputs.frontend_versjon}}
 
   release_backend:
-    needs: [bygge_backend, lag_versjon]
+    needs: lag_versjon
     runs-on: ubuntu-latest
     container: navikt/melosys-kodeverk-java:c0885b1e2fe12abee916aee5289933eb35a67be0
     steps:
