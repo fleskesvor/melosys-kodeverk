@@ -25,8 +25,12 @@ jobs:
       - run: yarn build
       - uses: actions/upload-artifact@v1
         with:
-          name: melosys-kodeverk
-          path: .
+          name: melosys-kodeverk-dist
+          path: dist
+      - uses: actions/upload-artifact@v1
+        with:
+          name: melosys-kodeverk-lib
+          path: lib
 
   bygge_backend:
     needs: bygge_frontend
@@ -43,7 +47,7 @@ jobs:
             v1-m2build-
       - uses: actions/download-artifact@v1
         with:
-          name: melosys-kodeverk
+          name: melosys-kodeverk-dist
           path: melosys-kodeverk-java/melosys-kodeverk/dist
       - name: Generere kildekode for Java-kodeverk
         working-directory: melosys-kodeverk-java
@@ -109,8 +113,8 @@ jobs:
       - uses: actions/checkout@v1
       - uses: actions/download-artifact@v1
         with:
-          name: melosys-kodeverk
-          path: .
+          name: melosys-kodeverk-lib
+          path: lib
       - uses: actions/setup-node@v1
         with:
           node-version: '12'
