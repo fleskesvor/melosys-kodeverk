@@ -52,7 +52,7 @@ jobs:
       - name: Generere kildekode for Java-kodeverk
         run: |
           set -e
-          java -jar ../app.jar melosys-kodeverk/dist/kodemap.yml
+          java -jar app.jar melosys-kodeverk/dist/kodemap.yml
       - name: Bygge Java-kodeverk
         working-directory: melosys-internt-kodeverk
         run: mvn clean install -B -V
@@ -124,6 +124,7 @@ jobs:
           npm config set registry https://npm.pkg.github.com/@fleskesvor
 
           if [ ${IS_MASTER} == true ]; then
+            # Setter versjon eksplisitt for å slippe å trigge på taggen
             npm --no-git-tag-version version ${FRONTEND_VERSION}
             npm publish --access public
           else
