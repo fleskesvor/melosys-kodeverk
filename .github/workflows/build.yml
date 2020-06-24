@@ -107,7 +107,7 @@ jobs:
             echo "::set-output name=backend::$(cat dist/semver.txt)"
           else
             # GPR tillater ikke samme versjon av ei npm-pakke, selv med --allow-same-versionn
-            echo "::set-output name=frontend::$(cat dist/semver.txt)-beta.${PR_NUMBER}"
+            echo "::set-output name=frontend::$(cat dist/semver.txt)-beta.${SHORT_SHA}"
             # GPR git '400 Bad Request' ved bruk av samme versjon
             echo "::set-output name=backend::$(cat dist/semver.txt)-${SHORT_SHA}-SNAPSHOT"
           fi
@@ -126,13 +126,6 @@ jobs:
           node-version: '12'
           registry-url: 'https://npm.pkg.github.com/'
           scope: '@fleskesvor'
-      - name: Fjern forrige beta release
-        if: github.ref != 'refs/heads/master'
-        uses: actions/delete-package-versions@v1
-        with:
-          package-name: 'test-package'
-          package-version-ids: ${{needs.lag_versjon.outputs.frontend_versjon}}
-          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Publiser til GitHub package registry
         run: |
           # FIXME: Hvorfor setter ikke actions/setup-node@v1 riktig registry?
@@ -166,6 +159,7 @@ jobs:
             v1-m2snapshot-
       - name: Publisere til GitHub package registry
         run: |
+          sed -i 's!https://maven.pkg.github.com/navikt/melosys-kodeverk!https://maven.pkg.github.com/fleskesvor/melosys-kodeverk!' pom.xml
           mvn dependency:resolve --settings /settings.xml
           mvn dependency:resolve-plugins --settings /settings.xml
           mvn versions:set -DnewVersion=${BACKEND_VERSION}
