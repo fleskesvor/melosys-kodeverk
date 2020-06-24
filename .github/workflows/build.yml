@@ -35,7 +35,7 @@ jobs:
   bygge_backend:
     needs: bygge_frontend
     runs-on: ubuntu-latest
-    container: navikt/melosys-kodeverk-java:9e7b71c1691dfda48f4de4a55fd0b7d6e1b6a241
+    container: navikt/melosys-kodeverk-java:c0885b1e2fe12abee916aee5289933eb35a67be0
     steps:
       # GitHub Actions tillater kun filer under workspace i cache-nøkler
       - run: cp /app.jar .
@@ -145,7 +145,7 @@ jobs:
   release_backend:
     needs: [bygge_backend, lag_versjon]
     runs-on: ubuntu-latest
-    container: navikt/melosys-kodeverk-java:9e7b71c1691dfda48f4de4a55fd0b7d6e1b6a241
+    container: navikt/melosys-kodeverk-java:c0885b1e2fe12abee916aee5289933eb35a67be0
     steps:
       - uses: actions/download-artifact@v1
         with:
@@ -159,28 +159,6 @@ jobs:
             v1-m2snapshot-
       - name: Publisere til GitHub package registry
         run: |
-          # FIXME: Fiks i melosys-kodeverk-java/melosys-kodeverk-generator/src/main/resources/templates/pom.xml
-          sed -i 's!https://oss.sonatype.org/service/local/staging/deploy/maven2/!https://maven.pkg.github.com/fleskesvor/melosys-kodeverk!' pom.xml
-          sed -i 's!<id>ossrh</id>!<id>github</id>!' pom.xml
-          sed -i '223,241d' pom.xml # maven-gpg-plugin
-          sed -i '129,147d' pom.xml # nexus-staging-maven-plugi
-          sed -i '38,41d' pom.xml # snapshotRepository
-
-          # FIXME: Legg til maven-settings.xml i melosys-kodeverk-java
-          cat > maven-settings.xml <<EOT
-          <settings>
-              <servers>
-                  <server>
-                      <id>github</id>
-                      <username>x-access-token</username>
-                      <password>${GITHUB_TOKEN}</password>
-                  </server>
-              </servers>
-          </settings>
-          EOT
-
-          cat maven-settings.xml
-
           mvn dependency:resolve --settings maven-settings.xml
           mvn dependency:resolve-plugins --settings maven-settings.xml
           mvn versions:set -DnewVersion=${BACKEND_VERSION} --settings maven-settings.xml
