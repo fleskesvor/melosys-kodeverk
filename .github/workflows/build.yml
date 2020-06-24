@@ -63,7 +63,6 @@ jobs:
           path: melosys-kodeverk-java
 
   lag_versjon:
-    if: github.ref == 'refs/heads/master'
     needs: bygge_backend
     runs-on: ubuntu-latest
     outputs:
