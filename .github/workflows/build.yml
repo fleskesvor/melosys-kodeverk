@@ -25,8 +25,12 @@ jobs:
       - run: yarn build
       - uses: actions/upload-artifact@v1
         with:
-          name: melosys-kodeverk
+          name: melosys-kodeverk-dist
           path: dist
+      - uses: actions/upload-artifact@v1
+        with:
+          name: melosys-kodeverk-lib
+          path: lib
 
   bygge_backend:
     needs: bygge_frontend
@@ -43,22 +47,21 @@ jobs:
             v1-m2build-
       - uses: actions/download-artifact@v1
         with:
-          name: melosys-kodeverk
-          path: melosys-kodeverk-java/melosys-kodeverk/dist
+          name: melosys-kodeverk-dist
+          path: melosys-kodeverk/dist
       - name: Generere kildekode for Java-kodeverk
-        working-directory: melosys-kodeverk-java
         run: |
           set -e
-          java -jar ../app.jar melosys-kodeverk/dist/kodemap.yml
+          java -jar app.jar melosys-kodeverk/dist/kodemap.yml
       - name: Bygge Java-kodeverk
-        working-directory: melosys-kodeverk-java/melosys-internt-kodeverk
+        working-directory: melosys-internt-kodeverk
         run: mvn clean install -B -V
       - uses: actions/upload-artifact@v1
         with:
           name: melosys-kodeverk-java
-          path: melosys-kodeverk-java
+          path: .
 
-  lag_versjon:
+  lage_versjoner:
     needs: bygge_backend
     runs-on: ubuntu-latest
     outputs:
@@ -102,10 +105,14 @@ jobs:
           SHORT_SHA: ${{ steps.parse_commit.outputs.short_sha }}
 
   release_frontend:
-    needs: lag_versjon
+    needs: lage_versjoner
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+      - uses: actions/download-artifact@v1
+        with:
+          name: melosys-kodeverk-lib
+          path: lib
       - uses: actions/setup-node@v1
         with:
           node-version: '12'
@@ -117,6 +124,7 @@ jobs:
           npm config set registry https://npm.pkg.github.com/@fleskesvor
 
           if [ ${IS_MASTER} == true ]; then
+            # Setter versjon eksplisitt for å slippe å trigge på taggen
             npm --no-git-tag-version version ${FRONTEND_VERSION}
             npm publish --access public
           else
@@ -126,10 +134,10 @@ jobs:
         env:
           IS_MASTER: ${{ github.ref == 'refs/heads/master' }}
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FRONTEND_VERSION: ${{ needs.lag_versjon.outputs.frontend_versjon }}
+          FRONTEND_VERSION: ${{ needs.lage_versjoner.outputs.frontend_versjon }}
 
   release_backend:
-    needs: lag_versjon
+    needs: lage_versjoner
     runs-on: ubuntu-latest
     container: navikt/melosys-kodeverk-java:c0885b1e2fe12abee916aee5289933eb35a67be0
     steps:
@@ -153,4 +161,4 @@ jobs:
         working-directory: melosys-internt-kodeverk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BACKEND_VERSION: ${{ needs.lag_versjon.outputs.backend_versjon }}
+          BACKEND_VERSION: ${{ needs.lage_versjoner.outputs.backend_versjon }}
