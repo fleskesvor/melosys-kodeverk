@@ -26,7 +26,7 @@ jobs:
       - uses: actions/upload-artifact@v1
         with:
           name: melosys-kodeverk
-          path: dist
+          path: .
 
   bygge_backend:
     needs: bygge_frontend
@@ -101,11 +101,16 @@ jobs:
           PR_NUMBER: ${{ github.event.number }}
           SHORT_SHA: ${{ steps.parse_commit.outputs.short_sha }}
 
+# FIXME Må vel hente dist/ igjen?
   release_frontend:
     needs: lag_versjon
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+      - uses: actions/download-artifact@v1
+        with:
+          name: melosys-kodeverk
+          path: .
       - uses: actions/setup-node@v1
         with:
           node-version: '12'
