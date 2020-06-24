@@ -117,6 +117,7 @@ jobs:
           npm config set registry https://npm.pkg.github.com/@fleskesvor
 
           if [ ${IS_MASTER} == true ]; then
+            npm --no-git-tag-version version ${FRONTEND_VERSION}
             npm publish --access public
           else
             npm --no-git-tag-version version ${FRONTEND_VERSION} --allow-same-version
