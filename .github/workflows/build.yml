@@ -72,22 +72,13 @@ jobs:
         with:
           node-version: '12'
       - run: |
-          # FIXME: Bytt ut med en action for å tagge og committe
-          git config --global user.email "githubci-melosys@nav.no"
-          git config --global user.name "GitHubCI"
-          git remote set-url origin "https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}"
-
-          BRANCH=${GITHUB_REF#refs/heads/}
-          git checkout -b ${BRANCH}
-          git branch --set-upstream-to=origin/${BRANCH}
-
-          echo "Tagger ny patch-versjon"
-
-          GIT_COMMIT_DESC=$(git log --format=oneline -n 1 ${GITHUB_SHA})
-          npm version patch -m "%s $GIT_COMMIT_DESC [skip ci]"
-          git push && git push --tags
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git config --global user.email "actions-melosys@nav.no"
+          git config --global user.name "Actions"
+          COMMIT_MESSAGE=`git log -1 --pretty=%B`
+          npm version patch -m "%s, $COMMIT_MESSAGE, [skip ci]"
+      - uses: ad-m/github-push-action@v0.5.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
   lag_versjon:
     needs: bygge_frontend
